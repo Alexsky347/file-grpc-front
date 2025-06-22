@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, OnDestroy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatGridListModule } from '@angular/material/grid-list';
@@ -11,6 +11,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { formatDate, formatFileSize } from '../../utils/format.utils';
 import { ActivatedRoute } from '@angular/router';
 import { ImageViewerComponent } from '../image-viewer/image-viewer.component';
+import { GalleryRefreshService } from '../../services/gallery-refresh.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-gallery',
@@ -113,11 +115,14 @@ import { ImageViewerComponent } from '../image-viewer/image-viewer.component';
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class GalleryComponent {
+export class GalleryComponent implements OnDestroy {
   private readonly fileService = inject(FileService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
+  private readonly refreshService = inject(GalleryRefreshService);
+
+  private readonly subscription: Subscription;
 
   files = signal<FileInfo[]>([]);
   loading = signal<boolean>(false);
@@ -132,10 +137,21 @@ export class GalleryComponent {
 
     // Subscribe to route params to handle refresh events
     this.route.params.subscribe(params => {
-      if (params['refresh']) {
-        this.loadUserImages('testUser');
+      if (params['username']) {
+        this.loadUserImages(params['username']);
       }
     });
+
+    // Subscribe to refresh events
+    this.subscription = this.refreshService.refresh$.subscribe(() => {
+      this.loadUserImages('testUser');
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   onResize(event: Event) {

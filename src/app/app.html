@@ -1,6 +1,6 @@
-<mat-toolbar color="primary">
-  <span class="app-title">{{title}}</span>
-  <span class="toolbar-spacer"></span>  <button mat-icon-button aria-label="Refresh gallery" title="Refresh gallery" [routerLink]="['/', { refresh: true }]">
+<mat-toolbar color="primary">  <span class="app-title">{{title}}</span>
+  <span class="toolbar-spacer"></span>
+  <button mat-icon-button aria-label="Refresh gallery" title="Refresh gallery" (click)="refreshGallery()">
     <mat-icon>refresh</mat-icon>
   </button>
 </mat-toolbar>
